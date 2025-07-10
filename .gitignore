@@ -7,10 +7,11 @@
 # Ignore all .whl files everywhere (even in root)
 *.whl
 
-# Ignore files starting with .
-
-test
-
+# Ignore files starting with . (but allow specific ones)
 .*
 
+# Allow these specific dotfiles
 !.gitignore
+!.github/
+!.github/*
+!.github/**
