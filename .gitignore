@@ -1,0 +1,16 @@
+# Ignore all files and folders
+**
+
+# Allow all files in the root (top-level) directory
+!/*
+
+# Ignore all .whl files everywhere (even in root)
+*.whl
+
+# Ignore files starting with .
+
+test
+
+.*
+
+!.gitignore
