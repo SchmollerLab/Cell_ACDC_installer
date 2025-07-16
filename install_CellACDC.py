@@ -537,8 +537,21 @@ if __name__ == "__main__":
             
             print("✅ Conda pip installation completed.")
 
-        print("🛠️ Launching CellACDC for internal setup...")
+        print("📦 Saving installation details...")
+        install_details = {
+            "target_dir": target_dir,
+            "venv_path": venv_path if not is_conda else conda_venv_path,
+            "conda": is_conda,
+            "clone_path": clone_path if use_github else "",
+            "use_github": use_github,
+            "version": cellacdc_version,
+            "conda_path": conda_path if is_conda else "",
+        }
+        with open(os.path.join(target_dir, "install_details.json"), "w") as f:
+            json.dump(install_details, f, indent=4)
+        print("✅ Installation details saved to install_details.json.")
 
+        print("🛠️ Launching CellACDC for internal setup...")
         # Cross-platform ACDC executable paths
         if not is_conda:
             if is_windows:
@@ -559,26 +572,9 @@ if __name__ == "__main__":
                                         "--install_details", 
                                         os.path.join(target_dir, 
                                         "install_details.json")])
-
         print("✅ CellACDC internal setup completed.")
 
-        print("📦 Saving installation details...")
-        install_details = {
-            "target_dir": target_dir,
-            "venv_path": venv_path if not is_conda else conda_venv_path,
-            "conda": is_conda,
-            "clone_path": clone_path if use_github else "",
-            "use_github": use_github,
-            "version": cellacdc_version,
-            "conda_path": conda_path if is_conda else "",
-        }
-        with open(os.path.join(target_dir, "install_details.json"), "w") as f:
-            json.dump(install_details, f, indent=4)
-
-        print("✅ Installation details saved to install_details.json.")
-
         # Log final session summary
-
         print_closing_logging(log_path)
     except Exception as e:
         # Restore original stdout/stderr for error handling
