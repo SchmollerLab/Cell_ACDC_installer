@@ -14,22 +14,14 @@ Download
 --------
 Pre-built installers (.exe) for Cell-ACDC can be downloaded from the `official release page <https://hmgubox2.helmholtz-muenchen.de/index.php/s/aBFkjEYrH6HW5bN>`_:
 
-.. raw:: html
-
-   <a href="https://hmgubox2.helmholtz-muenchen.de/index.php/s/aBFkjEYrH6HW5bN" 
-      target="_blank" 
-      style="display: inline-block; padding: 12px 24px; background-color: #007acc; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 10px 0;">
-      📥 Download Cell-ACDC Installer
-   </a>
+`📥 Download Cell-ACDC Installer <https://hmgubox2.helmholtz-muenchen.de/index.php/s/aBFkjEYrH6HW5bN>`_
 
 The installer was created using `Inno Setup <https://jrsoftware.org/isinfo.php>`_ and contains a `Portable Git <https://git-scm.com/download/win>`_ and a `Miniforge <https://github.com/conda-forge/miniforge>`_ version.
 
 Installation Info
 -----------------
 
-.. important::
-
-   For more information please consult our `installation guide <https://cell-acdc.readthedocs.io/en/latest/installation.html#install-cell-acdc-on-windows-using-the-installer>`_.
+**✨ For more information, please consult our** `installation guide <https://cell-acdc.readthedocs.io/en/latest/installation.html#install-cell-acdc-on-windows-using-the-installer>`_. ✨
 
 - The installer relies on an internet connection for downloading dependencies and updates.
 - The installer supports installing Cell-ACDC with an embedded Python environment (Miniforge) or using a custom Python/Forge installation.
@@ -61,25 +53,32 @@ If you want to build the installer yourself:
    https://conda-forge.org/download/
 
 2. Install Python dependencies
-   Open a terminal in this directory and run::
+   Open a terminal in this directory and run:
+
+   .. code-block:: bash
 
       pip install pyinstaller requests regex
 
-3. Customize the build
-    - Edit ``compile.py`` to set the Python version, Cell-ACDC version, and other parameters.
-    - Make sure all paths are correct and the required files are present.
-    - The ``acdc_version`` should match the version of Cell-ACDC you want to build.
+3. Customise the build
 
-   Settings users should change in ``compile.py``::
+   - Edit ``compile.py`` to set the Python version, Cell-ACDC version, and other parameters.
+   - Make sure all paths are correct and the required files are present.
+   - The ``acdc_version`` should match the version of Cell-ACDC you want to build.
 
-      cell_ACDC_source = r"path/to/Cell-ACDC.whl"  # Path to the Cell-ACDC whl source code
-      git_source = r"path/to/portablegit/source"  # Path to the Portable Git source folder
-      mini_source = r"path/to/miniforge"  # Path to the Miniforge folder
-      icon_path = r"path/to/CellACDCicon.ico"  # Path to the icon file for the installer
-      acdc_version = "1.6.1"  # Cell-ACDC version to build
+   Settings users should change in ``compile.py``:
+
+   .. code-block:: python
+   
+         cell_ACDC_source = r"path/to/Cell-ACDC.whl"  # Path to the Cell-ACDC whl source code
+         git_source = r"path/to/portablegit/source"  # Path to the Portable Git source folder
+         mini_source = r"path/to/miniforge"  # Path to the Miniforge folder
+         icon_path = r"path/to/CellACDCicon.ico"  # Path to the icon file for the installer
+         acdc_version = "1.6.1"  # Cell-ACDC version to build
 
 4. Build the executables
-   Run the build script::
+   Run the build script:
+
+   .. code-block:: bash
 
       python compile.py
 
@@ -94,6 +93,6 @@ Installing Cell-ACDC
 - Double-click the setup ``.exe`` and follow the installation instructions.
 - The installer will set up Cell-ACDC and create shortcuts.
 
-.. important::
+**✨ For more information, please consult our** `installation guide <https://cell-acdc.readthedocs.io/en/latest/installation.html#install-cell-acdc-on-windows-using-the-installer>`_. ✨
 
-   For more information please consult our `installation guide <https://cell-acdc.readthedocs.io/en/latest/installation.html#install-cell-acdc-on-windows-using-the-installer>`_.
+
