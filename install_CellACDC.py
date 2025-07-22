@@ -17,7 +17,7 @@ except ImportError as e:
     input("Press Enter to close...")
     sys.exit(1)
 
-def run_subprocess_with_logging(cmd):
+def run_subprocess_with_logging(cmd, env=None):
     """Run subprocess and capture all output to log file with real-time streaming"""
     if isinstance(cmd, str):
         cmd = [cmd]
@@ -47,7 +47,8 @@ def run_subprocess_with_logging(cmd):
                 encoding='utf-8',
                 errors='replace',
                 bufsize=1,
-                universal_newlines=True
+                universal_newlines=True,
+                env=env
             )
             
             # Stream output in real-time
@@ -498,15 +499,23 @@ if __name__ == "__main__":
             conda_venv_path = os.path.abspath(conda_venv_path)  # Ensure absolute path for conda venv
             print(f"🌱 Creating conda venv: {conda_venv_path}")
             print(f"Using conda/miniforge Python at: {python_path}")
+            
+            condarc_path = os.path.join(target_dir, ".condarc")
+            if os.path.exists(condarc_path):
+                env = os.environ.copy()
+                env["CONDARC"] = condarc_path
+            else:
+                env = None
 
             # Create conda environment with Python
             run_subprocess_with_logging([
                 conda_path,
                 "create", "-y",
                 "-p", conda_venv_path,
-                f"python={pyversion}"
-            ])
-            
+                f"python={pyversion}",
+                "-c", "conda-forge",
+            ], env=env)
+
             print("✅ Conda environment created.")
 
             if use_github or custom_CellACDC_path:
@@ -523,8 +532,10 @@ if __name__ == "__main__":
                 ]
                 if not use_whl:
                     cmd.insert(-1, "-e")
+                    
+                cmd.extend(["-c", "conda-forge"])
 
-                run_subprocess_with_logging(cmd)
+                run_subprocess_with_logging(cmd, env=env)
             else:
                 print(f"🛠️ Downloading and installing CellACDC v{cellacdc_version} and dependencies...")
                 
@@ -532,9 +543,10 @@ if __name__ == "__main__":
                 run_subprocess_with_logging([
                     conda_path,
                     "run", "-p", conda_venv_path,
-                    "pip", "install", f"cellacdc=={cellacdc_version}"
-                ])
-            
+                    "pip", "install", f"cellacdc=={cellacdc_version}",
+                    "-c", "conda-forge"
+                ], env=env)
+
             print("✅ Conda pip installation completed.")
 
         print("📦 Saving installation details...")
@@ -571,7 +583,7 @@ if __name__ == "__main__":
             subprocess.run([acdc_exec_path, "-y",
                                         "--install_details", 
                                         os.path.join(target_dir, 
-                                        "install_details.json")])
+                                        "install_details.json")], env=env)
         print("✅ CellACDC internal setup completed.")
 
         # Log final session summary

@@ -190,12 +190,20 @@ if __name__ == "__main__":
                                         "--install_details", os.path.join(target_dir, "install_details.json")])
 
         else:
+                        
+            condarc_path = os.path.join(target_dir, ".condarc")
+            if os.path.exists(condarc_path):
+                env = os.environ.copy()
+                env["CONDARC"] = condarc_path
+            else:
+                env = None
+                
             if is_windows:
                 acdc_exec_path = os.path.join(venv_path, "Scripts", "acdc.exe")
             else:
                 acdc_exec_path = os.path.join(venv_path, "bin", "acdc")
             subprocess.run([acdc_exec_path,
-                                        "--install_details", os.path.join(target_dir, "install_details.json")])
+                                        "--install_details", os.path.join(target_dir, "install_details.json")], env=env)
 
         elapsed_time = datetime.datetime.now() - start_time
         print(f"Thanks for using CellACDC, you spend {elapsed_time.total_seconds():.2f} seconds on this session!")

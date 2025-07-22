@@ -29,10 +29,13 @@ iss_file = "CellACDC.iss"
 # Version of Cell-ACDC to build the installer for, this is 
 # used to give the exe a name. Should match cell_ACDC_source version, but 
 # any version can be used to install up to date github or OLDER pypi versions
-acdc_version = "1.6.2"
+acdc_version = "1.6.5"
 acdc_version_no_points = acdc_version.replace(".", "_")
 
 build_output = os.path.join(acdc_version, "dist")
+
+file_location = os.path.dirname(os.path.abspath(__file__))
+condacrc_source = os.path.join(file_location, ".condarc")
 
 def get_pypi_versions(package_name):
     url = f"https://pypi.org/pypi/{package_name}/json"
@@ -159,6 +162,8 @@ def update_iss_file(iss_path, acdc_version, available_versions,
     content = content.replace("CELLACDC_FILE_NAME", os.path.basename(cell_ACDC_source))  # Select the correct file name for Cell-ACDC source code programmatically
 
     content = content.replace("GIT_SOURCE", git_source)  # Ensure this is set correctly
+    
+    content = content.replace("CONDARC_SOURCE", condacrc_source)  # Ensure this is set correctly
 
     # Write the updated content back
     with open(iss_path_new, 'w') as file:

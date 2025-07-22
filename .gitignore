@@ -10,8 +10,12 @@
 # Ignore files starting with . (but allow specific ones)
 .*
 
+
 # Allow these specific dotfiles
 !.gitignore
 !.github/
 !.github/*
 !.github/**
+!.condarc
+
+test.py

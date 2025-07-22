@@ -35,6 +35,9 @@ Source: "CELLACDC_SOURCE"; DestDir: "{app}"; Flags: ignoreversion; Check: Should
 ; Include portable Git if using GitHub installation
 Source: "GIT_SOURCE\*"; DestDir: "{app}\portable_git"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: ShouldInstallGitHub
 
+; Include conda configuration files
+Source: "CONDARC_SOURCE"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: ShouldInstallMiniforge
+
 [UninstallDelete]
 ; Standard deletion (immediate) - remove deleteafterreboot flags as well handle this in code
 Type: filesandordirs; Name: "{app}\cellacdc"
