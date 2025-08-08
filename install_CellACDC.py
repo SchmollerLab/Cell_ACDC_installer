@@ -155,7 +155,8 @@ def get_install_params(executable_dir):
                     r'--python_path\s+"([^"]+)".*?'
                     r'--embeddedpyflag\s+"([^"]+)".*?'
                     r'--pyversion\s+(\S+).*?'
-                    r'--custom_CellACDC_path\s+"([^"]+)"')
+                    r'--custom_CellACDC_path\s+"([^"]+)".*?'
+                    r'--install_models_list\s+"([^"]+)"')
 
             match = re.search(pattern, command_line)
             if match:
@@ -166,6 +167,7 @@ def get_install_params(executable_dir):
                 is_embedded_python = match.group(5).lower() == 'true'
                 pyversion = match.group(6)
                 custom_CellACDC_path = match.group(7)
+                install_models_list = match.group(8)
                 
                 print(f"   Target: {target_dir}")
                 print(f"   Use GitHub: {use_github}")
@@ -174,17 +176,18 @@ def get_install_params(executable_dir):
                 print(f"   Embedded Python: {is_embedded_python}")
                 print(f"   Python Version: {pyversion}")
                 print(f"   Custom CellACDC Path: {custom_CellACDC_path}")
+                print(f"   Install Models List: {install_models_list}")
             else:
                 print("⚠️ Unable to parse all required parameters from the command line in installation_command.txt.")
                 print("   Please ensure the file contains all required flags:")
-                print("   --target, --use_github, --version, --python_path, --embeddedpyflag, --pyversion, --custom_CellACDC_path")
+                print("""   --target, --use_github, --version, --python_path, --embeddedpyflag, --pyversion, --custom_CellACDC_path, --install_models_list""")
                 raise ValueError("Failed to extract installation parameters from command. Please check installation_command.txt for completeness and correct formatting.")
             
             print("✅ Successfully loaded installation parameters from command file")
         else:
             print("⚠️ Could not find a valid command line in installation_command.txt.")
             print("   Please ensure the file contains a line with all required flags:")
-            print("   --target, --use_github, --version, --python_path, --embeddedpyflag, --pyversion, --custom_CellACDC_path")
+            print("   --target, --use_github, --version, --python_path, --embeddedpyflag, --pyversion, --custom_CellACDC_path, --install_models_list")
             raise ValueError(
                 "Could not load installation parameters from command file. Please check installation_command.txt."
             )                
@@ -198,7 +201,7 @@ def get_install_params(executable_dir):
         print("   Please check the file for correct formatting and required flags.")
         raise e
     
-    return target_dir, use_github, cellacdc_version, python_path, is_embedded_python, pyversion, custom_CellACDC_path
+    return target_dir, use_github, cellacdc_version, python_path, is_embedded_python, pyversion, custom_CellACDC_path, install_models_list
 
 def setup_logging():
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -255,6 +258,46 @@ def print_closing_logging(log_path):
     print("=" * 80)
 
     print("✅ Installation completed successfully!")
+    
+def install_models_list_converter(install_models_list):
+    cmd_extension = []
+    acdc_flags = []
+    if isinstance(install_models_list, str):
+        install_models_list = install_models_list.strip('"').strip("'").strip()  # Clean up quotes if present
+        install_models_list = install_models_list.split(',')
+
+    if install_models_list[0] is None or install_models_list[0] == "none":
+        return "", acdc_flags
+    for model in install_models_list:
+        model = model.strip().lower()
+        model = model.strip('"').strip("'").strip()  # Clean up quotes if present
+        if model is None or model == "none":
+            continue
+        if model == "cellpose3":
+            cmd_extension.append("cellpose3")
+            acdc_flags.append("--cpModelsDownload")
+        elif model == "stardist":
+            cmd_extension.append("stardist")
+            acdc_flags.append("--StarDistModelsDownload")
+        elif model == "yeaz":
+            cmd_extension.append("yeaz")
+            acdc_flags.append("--YeaZModelsDownload")
+        elif model == "trackastra":
+            cmd_extension.append("trackastra")
+            acdc_flags.append("--TrackastraModelsDownload")
+        elif model == "deepsea":
+            cmd_extension.append("deepsea")
+            acdc_flags.append("--DeepSeaModelsDownload")
+        else:
+            print(f"⚠️ Unknown model '{model}' specified in install_models_list. Skipping.")
+            
+        if cmd_extension:
+            cmd = ",".join(cmd_extension)
+            cmd = f"[{cmd}]"
+        else:
+            cmd = ""
+        
+    return cmd, acdc_flags
 
 if __name__ == "__main__":
     try:
@@ -274,6 +317,7 @@ if __name__ == "__main__":
         parser.add_argument('--embeddedpyflag', help='Path to Python installer executable (if applicable)')
         parser.add_argument('--pyversion',  help='Python version to use for conda environment')
         parser.add_argument('--custom_CellACDC_path', help='Custom path to CellACDC repository clone (if applicable)')
+        parser.add_argument('--install_models_list', help='Install models list', default="NOT SET")
 
         args = parser.parse_args()
         target_dir = args.target if args.target else None
@@ -283,6 +327,12 @@ if __name__ == "__main__":
         python_path = args.python_path if args.python_path else None
         pyversion = args.pyversion if args.pyversion else None
         custom_CellACDC_path = args.custom_CellACDC_path if args.custom_CellACDC_path else None
+        install_models_list = args.install_models_list if args.install_models_list else None
+        
+        if install_models_list is None or install_models_list.lower() == "none":
+            install_models_list = []
+        elif isinstance(install_models_list, str) and install_models_list.lower() == "not set":
+            install_models_list = None
 
         # Check if any main install flags are provided
         install_flags = [
@@ -292,7 +342,8 @@ if __name__ == "__main__":
             ('python_path', python_path),
             ('pyversion', pyversion),
             ('embeddedpyflag', is_embedded_python),
-            ('custom_CellACDC_path', custom_CellACDC_path)
+            ('custom_CellACDC_path', custom_CellACDC_path),
+            # ('install_models_list', install_models_list)
         ]
         
         # Get list of provided and missing flags
@@ -327,7 +378,9 @@ if __name__ == "__main__":
             print(f"🐍 Running as Python script: {executable_path}")
         
         if not flag_mode:
-            target_dir, use_github, cellacdc_version, python_path, is_embedded_python, pyversion, custom_CellACDC_path = get_install_params(executable_dir)
+            (target_dir, use_github, cellacdc_version, python_path, 
+             is_embedded_python, pyversion, custom_CellACDC_path, 
+             install_models_list) = get_install_params(executable_dir)
 
         if python_path:
             python_path = os.path.abspath(python_path) # Ensure absolute path, and format correctly for Windows
@@ -372,7 +425,7 @@ if __name__ == "__main__":
                     
                     cmd = [git_prefix, "clone", repo_url, clone_path]
                     run_subprocess_with_logging(cmd)
-                    cmd = ["git", "config", "--global", "--add", 
+                    cmd = [git_prefix, "config", "--global", "--add", 
                            "safe.directory", clone_path]
                     run_subprocess_with_logging(cmd)
                     
@@ -458,7 +511,8 @@ if __name__ == "__main__":
             conda_path = os.path.abspath(conda_path)  # Ensure absolute path for conda
         #     conda_path = f'"{conda_path}"'  # Ensure proper quoting for Windows paths
         # python_path = f'"{python_path}"'  # Ensure proper quoting for Windows paths'
-        
+        cmd_extension, acdc_flags = install_models_list_converter(install_models_list)
+
         if not is_conda:
             venv_path = os.path.join(target_dir, "venv")
             venv_path = os.path.abspath(venv_path)  # Ensure absolute path for venv
@@ -472,15 +526,14 @@ if __name__ == "__main__":
                 pip_path = os.path.join(venv_path, "Scripts", "pip.exe")
             else:
                 pip_path = os.path.join(venv_path, "bin", "pip")
-            
+
             if use_github or custom_CellACDC_path:
                 print("🛠️ Installing CellACDC and dependencies...")
                 print(f"   Using Cell-ACDC path: {clone_path}")
                 clone_path = os.path.abspath(clone_path)  # Ensure absolute path for pip install
                 print(f"   Absolute path: {clone_path}")
-                
-                # Install in editable mode from local clone
-                cmd = [pip_path, "install", clone_path]
+
+                cmd = [pip_path, "install", f"{clone_path}{cmd_extension if cmd_extension else ''}"]
                 if not use_whl:
                     cmd.insert(-1, "-e")
                 run_subprocess_with_logging(cmd)
@@ -489,7 +542,7 @@ if __name__ == "__main__":
                 
                 # Install specific version from PyPI
                 run_subprocess_with_logging([
-                    pip_path, "install", f"cellacdc=={cellacdc_version}"
+                    pip_path, "install", f"cellacdc=={cellacdc_version}{cmd_extension if cmd_extension else ''}",
                 ])
             
             print("✅ Pip installation completed.")
@@ -528,13 +581,11 @@ if __name__ == "__main__":
                 cmd = [
                     conda_path,
                     "run", "-p", conda_venv_path,
-                    "pip", "install", clone_path
+                    "pip", "install", f"{clone_path}{cmd_extension if cmd_extension else ''}"
                 ]
                 if not use_whl:
                     cmd.insert(-1, "-e")
                     
-                cmd.extend(["-c", "conda-forge"])
-
                 run_subprocess_with_logging(cmd, env=env)
             else:
                 print(f"🛠️ Downloading and installing CellACDC v{cellacdc_version} and dependencies...")
@@ -543,8 +594,7 @@ if __name__ == "__main__":
                 run_subprocess_with_logging([
                     conda_path,
                     "run", "-p", conda_venv_path,
-                    "pip", "install", f"cellacdc=={cellacdc_version}",
-                    "-c", "conda-forge"
+                    "pip", "install", f"cellacdc=={cellacdc_version}{cmd_extension if cmd_extension else ''}",
                 ], env=env)
 
             print("✅ Conda pip installation completed.")
@@ -565,25 +615,26 @@ if __name__ == "__main__":
 
         print("🛠️ Launching CellACDC for internal setup...")
         # Cross-platform ACDC executable paths
+        cmd = ["-y", "--install_details",
+               os.path.join(target_dir, "install_details.json")]
+        cmd += acdc_flags
         if not is_conda:
             if is_windows:
                 acdc_exec_path = os.path.join(venv_path, "Scripts", "acdc.exe")
             else:
                 acdc_exec_path = os.path.join(venv_path, "bin", "acdc")
-            subprocess.run([acdc_exec_path, "-y",
-                                        "--install_details", 
-                                        os.path.join(target_dir, 
-                                        "install_details.json")])
+            cmd = [acdc_exec_path] + cmd
+            print(f"   Running cmd: {cmd}")
+            subprocess.run(cmd)
 
         else:
             if is_windows:
                 acdc_exec_path = os.path.join(conda_venv_path, "Scripts", "acdc.exe")
             else:
                 acdc_exec_path = os.path.join(conda_venv_path, "bin", "acdc")
-            subprocess.run([acdc_exec_path, "-y",
-                                        "--install_details", 
-                                        os.path.join(target_dir, 
-                                        "install_details.json")], env=env)
+            cmd = [acdc_exec_path] + cmd
+            print(f"   Running cmd: {cmd}")
+            subprocess.run(cmd, env=env)
         print("✅ CellACDC internal setup completed.")
 
         # Log final session summary

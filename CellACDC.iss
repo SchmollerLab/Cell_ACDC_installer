@@ -80,7 +80,7 @@ Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "A
 [Run]
 ; Run the installer immediately after install with elevated rights
 Filename: "{app}\Cell-ACDC-installer.exe"; \
-  Parameters: "--target ""{app}"" --use_github ""{code:GetGitHubFlag}"" --version ""{code:GetVersionValue}"" --python_path ""{code:GetPythonPath}"" --embeddedpyflag ""{code:GetPythonInstallFlag}"" --pyversion PLACEHOLDER_PY_VER --custom_CellACDC_path ""{code:GetCustomCellACDCPath}"""; \
+  Parameters: "--target ""{app}"" --use_github ""{code:GetGitHubFlag}"" --version ""{code:GetVersionValue}"" --python_path ""{code:GetPythonPath}"" --embeddedpyflag ""{code:GetPythonInstallFlag}"" --pyversion PLACEHOLDER_PY_VER --custom_CellACDC_path ""{code:GetCustomCellACDCPath}"" --install_models_list ""{code:GetInstallModelsList}"""; \
   Description: "Install Cell-ACDC now (Please monitor the command terminal for progress)"; \
   Flags: shellexec waituntilterminated; \
   Verb: runas; \
@@ -218,6 +218,12 @@ var
   
   // New variables for Cell-ACDC source selection page
   CellACDCPage: TWizardPage;
+  ModelsPage: TWizardPage;
+  CellposeCheckbox: TNewCheckBox;
+  StarDistCheckbox: TNewCheckBox;
+  YeaZCheckbox: TNewCheckBox;
+  TrackastraCheckbox: TNewCheckBox;
+  DeepSeaCheckbox: TNewCheckBox;
 
 procedure InitializeWizard;
 begin
@@ -243,6 +249,55 @@ begin
   // Initialize flags
   CustomPythonPageInitialized := False;
   SelectDirPageInitialized := False;
+  SelectCellACDCInstallPageInitialized := False;
+
+  // Create models download page
+  ModelsPage := CreateCustomPage(CellACDCPage.ID, 'Pre-download Models', 'Select segmentation models to pre-download');
+
+  CellposeCheckbox := TNewCheckBox.Create(WizardForm);
+  CellposeCheckbox.Parent := ModelsPage.Surface;
+  CellposeCheckbox.Caption := 'Cellpose v3';
+  CellposeCheckbox.Top := ScaleY(10);
+  CellposeCheckbox.Left := WizardForm.DirEdit.Left;
+  CellposeCheckbox.Width := ScaleX(400);
+  CellposeCheckbox.Height := ScaleY(17);
+  CellposeCheckbox.Checked := False;
+
+  StarDistCheckbox := TNewCheckBox.Create(WizardForm);
+  StarDistCheckbox.Parent := ModelsPage.Surface;
+  StarDistCheckbox.Caption := 'StarDist';
+  StarDistCheckbox.Top := CellposeCheckbox.Top + CellposeCheckbox.Height + ScaleY(5);
+  StarDistCheckbox.Left := WizardForm.DirEdit.Left;
+  StarDistCheckbox.Width := ScaleX(400);
+  StarDistCheckbox.Height := ScaleY(17);
+  StarDistCheckbox.Checked := False;
+
+  YeaZCheckbox := TNewCheckBox.Create(WizardForm);
+  YeaZCheckbox.Parent := ModelsPage.Surface;
+  YeaZCheckbox.Caption := 'YeaZ';
+  YeaZCheckbox.Top := StarDistCheckbox.Top + StarDistCheckbox.Height + ScaleY(5);
+  YeaZCheckbox.Left := WizardForm.DirEdit.Left;
+  YeaZCheckbox.Width := ScaleX(400);
+  YeaZCheckbox.Height := ScaleY(17);
+  YeaZCheckbox.Checked := False;
+
+  TrackastraCheckbox := TNewCheckBox.Create(WizardForm);
+  TrackastraCheckbox.Parent := ModelsPage.Surface;
+  TrackastraCheckbox.Caption := 'Trackastra';
+  TrackastraCheckbox.Top := YeaZCheckbox.Top + YeaZCheckbox.Height + ScaleY(5);
+  TrackastraCheckbox.Left := WizardForm.DirEdit.Left;
+  TrackastraCheckbox.Width := ScaleX(400);
+  TrackastraCheckbox.Height := ScaleY(17);
+  TrackastraCheckbox.Checked := False;
+
+  DeepSeaCheckbox := TNewCheckBox.Create(WizardForm);
+  DeepSeaCheckbox.Parent := ModelsPage.Surface;
+  DeepSeaCheckbox.Caption := 'DeepSea';
+  DeepSeaCheckbox.Top := TrackastraCheckbox.Top + TrackastraCheckbox.Height + ScaleY(5);
+  DeepSeaCheckbox.Left := WizardForm.DirEdit.Left;
+  DeepSeaCheckbox.Width := ScaleX(400);
+  DeepSeaCheckbox.Height := ScaleY(17)
+  DeepSeaCheckbox.Checked := False;
 end;
 
 procedure UseGitHubCheckboxClick(Sender: TObject);
@@ -585,6 +640,20 @@ begin
       WizardForm.ReadyMemo.Lines.Add('    Miniforge: Default (bundled with Cell-ACDC)');
       WizardForm.ReadyMemo.Lines.Add('    Location: Installation directory\miniforge');
     end;
+    WizardForm.ReadyMemo.Lines.Add('');
+    WizardForm.ReadyMemo.Lines.Add('Models to pre-download:');
+    if CellposeCheckbox.Checked then
+      WizardForm.ReadyMemo.Lines.Add('    Cellpose v3');
+    if StarDistCheckbox.Checked then
+      WizardForm.ReadyMemo.Lines.Add('    StarDist'); 
+    if YeaZCheckbox.Checked then
+      WizardForm.ReadyMemo.Lines.Add('    YeaZ');
+    if TrackastraCheckbox.Checked then
+      WizardForm.ReadyMemo.Lines.Add('    Trackastra');
+    if DeepSeaCheckbox.Checked then
+      WizardForm.ReadyMemo.Lines.Add('    DeepSea');
+    if not (CellposeCheckbox.Checked or StarDistCheckbox.Checked or YeaZCheckbox.Checked or TrackastraCheckbox.Checked or DeepSeaCheckbox.Checked) then
+      WizardForm.ReadyMemo.Lines.Add('    None (no models will be pre-downloaded)');
   end
   else if CurPageID = wpInstalling then
   begin
@@ -714,6 +783,28 @@ begin
   end
 end;
 
+function GetInstallModelsList(Param: string): string;
+var
+  models: string;
+begin
+  models := '';
+  if CellposeCheckbox.Checked then
+    models := models + 'Cellpose3,';
+  if StarDistCheckbox.Checked then
+    models := models + 'StarDist,';
+  if YeaZCheckbox.Checked then
+    models := models + 'YeaZ,';
+  if TrackastraCheckbox.Checked then
+    models := models + 'Trackastra,';
+  if DeepSeaCheckbox.Checked then
+    models := models + 'DeepSea,';
+  if models <> '' then
+    models := Copy(models, 1, Length(models) - 1); // Remove trailing comma
+  if models = '' then
+    models := 'None'; // If no models selected, return 'None'
+  Result := models;
+end;
+
 procedure SaveInstallationCommand;
 var
   CommandFile: string;
@@ -730,8 +821,9 @@ begin
              '--python_path "' + GetPythonPath('') + '" ' +
              '--embeddedpyflag "' + GetPythonInstallFlag('') + '" ' +
              '--pyversion PLACEHOLDER_PY_VER' +
-             ' --custom_CellACDC_path "' + GetCustomCellACDCPath('') + '"';
-  
+             ' --custom_CellACDC_path "' + GetCustomCellACDCPath('') + '"' +
+             ' --install_models_list "' + GetInstallModelsList('') + '"';
+
   // Create file content with explanation
   FileContent := 'Cell-ACDC Installation Command' + #13#10 +
                 '================================' + #13#10 + #13#10 +
