@@ -542,7 +542,7 @@ if __name__ == "__main__":
                 
                 # Install specific version from PyPI
                 run_subprocess_with_logging([
-                    pip_path, "install", f"cellacdc=={cellacdc_version}{cmd_extension if cmd_extension else ''}",
+                    pip_path, "install", f"cellacdc{cmd_extension if cmd_extension else ''}=={cellacdc_version}",
                 ])
             
             print("✅ Pip installation completed.")
@@ -594,7 +594,7 @@ if __name__ == "__main__":
                 run_subprocess_with_logging([
                     conda_path,
                     "run", "-p", conda_venv_path,
-                    "pip", "install", f"cellacdc=={cellacdc_version}{cmd_extension if cmd_extension else ''}",
+                    "pip", "install", f"cellacdc{cmd_extension if cmd_extension else ''}=={cellacdc_version}",
                 ], env=env)
 
             print("✅ Conda pip installation completed.")
