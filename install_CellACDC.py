@@ -266,7 +266,7 @@ def install_models_list_converter(install_models_list):
         install_models_list = install_models_list.strip('"').strip("'").strip()  # Clean up quotes if present
         install_models_list = install_models_list.split(',')
 
-    if install_models_list[0] is None or install_models_list[0] == "none":
+    if len(install_models_list) == 0 or install_models_list[0] is None or install_models_list[0] == "none":
         return "", acdc_flags
     for model in install_models_list:
         model = model.strip().lower()
